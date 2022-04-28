@@ -1,4 +1,5 @@
 from math import hypot
+from re import I
 from wsgiref import headers
 import requests
 from bs4 import BeautifulSoup
@@ -14,13 +15,15 @@ def get_html(url, params=None):
 def get_content(html):
     soup = BeautifulSoup(html.text, 'html.parser')
     items = soup.find_all('tr')
-
     cryptocurrency=[]
     for item in items:
-        cryptocurrency.append({
-            'name': item.find('p',class_='sc-1eb5slv-0 iworPT')
-        })
+        items2=item.find_all('p',class_ = 'sc-1eb5slv-0 iworPT')
+        for item2 in items2:
+            cryptocurrency.append({
+                'name': item2.text
+            })
     print(cryptocurrency)
+
 def parse():
     html = get_html(URL)
     if html.status_code == 200:
@@ -30,10 +33,3 @@ def parse():
 
 
 parse()
-
-#soup = BeautifulSoup(page.text, 'html.parser')
-#table = soup.find_all('tbody')
-# with open('mainpage.txt', 'w',encoding='utf-8') as f:
-#     f.write(soup.prettify())
-# with open('mainpage.txt', 'w',encoding='utf-8') as f:
-#     f.write(str(table))
