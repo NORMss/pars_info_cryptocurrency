@@ -1,40 +1,29 @@
-from asyncore import write
-import csv
-import imp
-from itertools import count
 import json
-from sys import flags
 import time
-from math import hypot
-from re import I
-from tracemalloc import start
-from unicodedata import name
-from wsgiref import headers
-from xmlrpc.client import boolean
-from h11 import Data
-import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-import fileinput
 import pandas as pd
-import numpy as np 
+
 URL = "https://coinmarketcap.com/"
 HEADERS = {
     "user-agent": "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36"}
+
 cryptocurrency = []
+
 
 def get_html(url, params=None):
     #page = requests.get(URL, headers=HEADERS, params=params)
+
     driver = webdriver.Chrome(executable_path=r'chromedriver.exe')
     driver.get(url)
     time.sleep(2)
+
     # heig_d=500
     # while heig_d < 10000:
     #     driver.execute_script("0,window.scrollTo(0, {heig_d});")
     #     heig_d += 500
     #     time.sleep(0.5)
+
     driver.execute_script("0,window.scrollTo(0, 500);")
     time.sleep(0.5)
     driver.execute_script("0,window.scrollTo(0, 1000);")
@@ -81,62 +70,53 @@ def get_content(html):
             item_marketcap = block.find(class_='sc-1ow4cwt-0 iosgXe').text
             item_volume24h = block.find(class_='sc-1ow4cwt-0 iosgXe').text
             item_circulsupp = block.find(class_='sc-1eb5slv-0 kZlTnE').text
+
+            # items_percent24h=block.find_all('span',class_='sc-15yy2pl-0 kAXKAX')
+            # items_percent7d=block.find_all('span',class_='sc-15yy2pl-0 hzgCfk')
+
+            # str_percent24h=[]
+            # str_percent7d=[]
+
+            # for item_percent24h in items_percent24h:
+            #     str_percent24h.append(item_percent24h.text)
+            # for item_percent7d in items_percent7d:
+            #     str_percent7d.append(item_percent7d.text)
+
             cryptocurrency.append({
                 'name': item_name,
                 'prise': item_prise,
+                # 'percent24h':str_percent24h,
+                # 'percent7d': str_percent7d,
                 'marketcap': item_marketcap,
                 'circulsupp': item_circulsupp,
                 'volume24h': item_volume24h
             })
-        # items_percent24h=block.find_all('span',class_='sc-15yy2pl-0 kAXKAX')
-        # items_percent7d=block.find_all('span',class_='sc-15yy2pl-0 hzgCfk')
-        # for item_percent24h in items_percent24h:
-        #     cryptocurrency.append({
-        #         'percent24h': item_percent24h.text
-        #     })
-        # for item_percent7d in items_percent7d:
-        #     cryptocurrency.append({
-        #         'percent7d': item_percent7d.text
-        #     })
 
 
 def parse():
     html = get_html(URL)
     get_content(html)
-    # if html.status_code == 200:
-    #    get_content(html)
-    # else:
-    #     print("Ошибка! Не удалось получить данные сайта =(")
 
 
 def create_json():
     with open('data.json', 'a', encoding='utf-8') as file:
         json.dump(cryptocurrency, file, indent=4, ensure_ascii='False')
 
+
 def create_csv():
-    # np.savetxt("data.csv", cryptocurrency, delimiter =",",header='name', 'prise', 'marketcap', 'circulsupp', 'volume24h',fmt ='% s')
-    
-    dataframe = pd.DataFrame(cryptocurrency) 
-    dataframe.to_csv('data.csv',index=False,sep=';')
-    
-    # with open ('data.csv','w',encoding='utf-8', newline='') as file:        
-        # wr = csv.writer(file, quoting=csv.QUOTE_ALL,delimiter='\n',fieldnames=['name', 'prise', 'marketcap', 'circulsupp', 'volume24h'])
+    dataframe = pd.DataFrame(cryptocurrency)
+    dataframe.to_csv('data.csv', index=False, sep=';')
 
 
-def search_list(data,key):
-    # data = js.join(fileinput.input(js=fileinput.hook_encoded("utf-8")))
-    # for item in json.loads(data):
-    #     if item['name'] == key:
-    #         return item['name', 'prise', 'marketcap', 'circulsupp', 'volume24h']
-
-    # key = input('Введите имя')
+def search_list(data, key):
     return list(filter(lambda item: item['name'] == key, data))
+
 
 def menu():
     flag = False
     while True:
         print("1. Parsing")
-        if flag==True:
+        if flag == True:
             print("2. Search")
             print("3. Create JSON")
             print("4. Create CSV")
@@ -144,23 +124,27 @@ def menu():
         cmd = input("Select: ")
 
         if cmd == "1":
-            parse()
-            flag=True
-        elif cmd == "2" and flag==True:
+            try:
+                parse()
+                flag = True
+            except Exception:
+                print("Please try again")
+                flag = False
+        elif cmd == "2" and flag == True:
             key = input("Enter (name): ")
-            if search_list(cryptocurrency,key)!=None:
-                print(search_list(cryptocurrency,key))
+            if search_list(cryptocurrency, key) != None:
+                print(search_list(cryptocurrency, key))
             else:
                 print("Not found")
-        elif cmd == "3" and flag==True:
+        elif cmd == "3" and flag == True:
             create_json()
-        elif cmd == "4" and flag==True:
+        elif cmd == "4" and flag == True:
             create_csv()
         elif cmd == "0":
             print()
             break
         else:
-            print("Вы ввели не правильное значение")
+            print("You entered an invalid value")
 
 
 menu()
