@@ -3,12 +3,14 @@ import csv
 import imp
 from itertools import count
 import json
+from sys import flags
 import time
 from math import hypot
 from re import I
 from tracemalloc import start
 from unicodedata import name
 from wsgiref import headers
+from xmlrpc.client import boolean
 from h11 import Data
 import requests
 from bs4 import BeautifulSoup
@@ -130,10 +132,35 @@ def search_list(data,key):
     # key = input('Введите имя')
     return list(filter(lambda item: item['name'] == key, data))
 
+def menu():
+    flag = False
+    while True:
+        print("1. Parsing")
+        if flag==True:
+            print("2. Search")
+            print("3. Create JSON")
+            print("4. Create CSV")
+        print("0. Exit")
+        cmd = input("Select: ")
 
-parse()
-create_json()
-create_csv()
-print (search_list(cryptocurrency,'Ethereum'))
-print (search_list(cryptocurrency,'USD Coin'))
-print (search_list(cryptocurrency,'Terra'))
+        if cmd == "1":
+            parse()
+            flag=True
+        elif cmd == "2" and flag==True:
+            key = input("Enter (name): ")
+            if search_list(cryptocurrency,key)!=None:
+                print(search_list(cryptocurrency,key))
+            else:
+                print("Not found")
+        elif cmd == "3" and flag==True:
+            create_json()
+        elif cmd == "4" and flag==True:
+            create_csv()
+        elif cmd == "0":
+            print()
+            break
+        else:
+            print("Вы ввели не правильное значение")
+
+
+menu()
