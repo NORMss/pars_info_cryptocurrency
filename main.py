@@ -98,18 +98,27 @@ def parse():
     get_content(html)
 
 
-def create_json():
+def create_json(data):
     with open('data.json', 'a', encoding='utf-8') as file:
-        json.dump(cryptocurrency, file, indent=4, ensure_ascii='False')
+        json.dump(data, file, indent=4, ensure_ascii='False')
 
 
-def create_csv():
-    dataframe = pd.DataFrame(cryptocurrency)
+def create_csv(data):
+    dataframe = pd.DataFrame(data)
     dataframe.to_csv('data.csv', index=False, sep=';')
 
 
 def search_list(data, key):
-    return list(filter(lambda item: item['name'] == key, data))
+    # sm = set(key)
+    # return[a for a in sm if a in data['name']]
+
+    try:
+        return list(filter(lambda item: item['name'] == key, data))
+    except Exception:
+        return "Not found"
+    
+    # dataframe = pd.DataFrame(data)
+    # return dataframe[dataframe['name'].str.contains(key)]
 
 
 def menu():
@@ -132,14 +141,11 @@ def menu():
                 flag = False
         elif cmd == "2" and flag == True:
             key = input("Enter (name): ")
-            if search_list(cryptocurrency, key) != None:
-                print(search_list(cryptocurrency, key))
-            else:
-                print("Not found")
+            print(search_list(cryptocurrency, key))
         elif cmd == "3" and flag == True:
-            create_json()
+            create_json(cryptocurrency)
         elif cmd == "4" and flag == True:
-            create_csv()
+            create_csv(cryptocurrency)
         elif cmd == "0":
             print()
             break
