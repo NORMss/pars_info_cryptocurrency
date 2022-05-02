@@ -3,6 +3,7 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import pandas as pd
+import requests
 
 URL = "https://coinmarketcap.com/"
 HEADERS = {
@@ -12,17 +13,17 @@ cryptocurrency = []
 
 
 def get_html(url, params=None):
-    #page = requests.get(URL, headers=HEADERS, params=params)
+    # page = requests.get(URL, headers=HEADERS, params=params)
 
     driver = webdriver.Chrome(executable_path=r'chromedriver.exe')
     driver.get(url)
     time.sleep(2)
 
-    # heig_d=500
-    # while heig_d < 10000:
-    #     driver.execute_script("0,window.scrollTo(0, {heig_d});")
-    #     heig_d += 500
-    #     time.sleep(0.5)
+    # # heig_d=500
+    # # while heig_d < 10000:
+    # #     driver.execute_script("0,window.scrollTo(0, {heig_d});")
+    # #     heig_d += 500
+    # #     time.sleep(0.5)
 
     driver.execute_script("0,window.scrollTo(0, 500);")
     time.sleep(0.5)
@@ -55,6 +56,7 @@ def get_html(url, params=None):
     driver.execute_script("0,window.scrollTo(0, 7500);")
     time.sleep(0.5)
     page = driver.page_source
+
     return page
 
 
@@ -99,7 +101,7 @@ def parse():
 
 
 def create_json(data):
-    with open('data.json', 'a', encoding='utf-8') as file:
+    with open('data.json', 'w', encoding='utf-8') as file:
         json.dump(data, file, indent=4, ensure_ascii='False')
 
 
@@ -116,9 +118,21 @@ def search_list(data, key):
         return list(filter(lambda item: item['name'] == key, data))
     except Exception:
         return "Not found"
-    
+
     # dataframe = pd.DataFrame(data)
     # return dataframe[dataframe['name'].str.contains(key)]
+
+
+def search_json(data,key):
+    items = json.loads(data)
+
+    # Input the item name that you want to search
+    item = input("Enter an item name:\n")
+
+    # Define a function to search the item
+    for keyval in items:
+        if key.lower() == keyval['name'].lower():
+            return keyval
 
 
 def menu():
@@ -153,4 +167,4 @@ def menu():
             print("You entered an invalid value")
 
 
-menu()
+# menu()
