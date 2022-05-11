@@ -2,8 +2,11 @@ import json
 import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import requests
+
 
 URL = "https://coinmarketcap.com/"
 HEADERS = {
@@ -12,49 +15,19 @@ HEADERS = {
 cryptocurrency = []
 
 
-def get_html(url, params=None):
-    # page = requests.get(URL, headers=HEADERS, params=params)
+def get_html_req(url, params=None):
+    page = requests.get(url, headers=HEADERS, params=params)
+    return page
 
-    driver = webdriver.Chrome(executable_path=r'chromedriver.exe')
+
+def get_html(url):
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     driver.get(url)
-    time.sleep(2)
 
-    # # heig_d=500
-    # # while heig_d < 10000:
-    # #     driver.execute_script("0,window.scrollTo(0, {heig_d});")
-    # #     heig_d += 500
-    # #     time.sleep(0.5)
+    for heig_d in range(0,driver.execute_script("return document.body.scrollHeight"),500):
+        driver.execute_script(f"0,window.scrollTo(0, {heig_d});")
+        time.sleep(0.5)
 
-    driver.execute_script("0,window.scrollTo(0, 500);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 1000);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 1500);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 2000);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 2500);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 3000);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 3500);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 4000);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 4500);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 5000);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 5500);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 6000);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 6500);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 7000);")
-    time.sleep(0.5)
-    driver.execute_script("0,window.scrollTo(0, 7500);")
-    time.sleep(0.5)
     page = driver.page_source
 
     return page
@@ -66,29 +39,24 @@ def get_content(html):
     for block in blocks:
         if (block.find(class_="sc-1eb5slv-0 iworPT") != None):
             item_name = block.find(class_='sc-1eb5slv-0 iworPT').text
-            item_prise = block.find(class_='sc-131di3y-0 cLgOOr').text
-            items_percent24h = block.find_all(class_='sc-15yy2pl-0 kAXKAX')
-            items_percent7d = block.find_all(class_='sc-15yy2pl-0 hzgCfk')
+            items_priсe = block.find_all(class_='sc-131di3y-0 cLgOOr')
+            items_percent7d24=block.find_all(class_='hzgCfk')
             item_marketcap = block.find(class_='sc-1ow4cwt-0 iosgXe').text
             item_volume24h = block.find(class_='sc-1ow4cwt-0 iosgXe').text
             item_circulsupp = block.find(class_='sc-1eb5slv-0 kZlTnE').text
 
-            # items_percent24h=block.find_all('span',class_='sc-15yy2pl-0 kAXKAX')
-            # items_percent7d=block.find_all('span',class_='sc-15yy2pl-0 hzgCfk')
+            str_priсe=''
+            str_percent7d24h=''
 
-            # str_percent24h=[]
-            # str_percent7d=[]
-
-            # for item_percent24h in items_percent24h:
-            #     str_percent24h.append(item_percent24h.text)
-            # for item_percent7d in items_percent7d:
-            #     str_percent7d.append(item_percent7d.text)
+            for item_priсe in items_priсe:
+                str_priсe+=item_priсe.text
+            for item_percent7d24 in items_percent7d24:
+                str_percent7d24h+=item_percent7d24.text
 
             cryptocurrency.append({
                 'name': item_name,
-                'prise': item_prise,
-                # 'percent24h':str_percent24h,
-                # 'percent7d': str_percent7d,
+                'price': str_priсe,
+                'percent24h7d':str_percent7d24h,
                 'marketcap': item_marketcap,
                 'circulsupp': item_circulsupp,
                 'volume24h': item_volume24h
@@ -96,7 +64,7 @@ def get_content(html):
 
 
 def parse():
-    html = get_html(URL)
+    html = get_html(URL,)
     get_content(html)
 
 
@@ -111,29 +79,20 @@ def create_csv(data):
 
 
 def search_list(data, key):
-    # sm = set(key)
-    # return[a for a in sm if a in data['name']]
-
     try:
         return list(filter(lambda item: item['name'] == key, data))
     except Exception:
         return "Not found"
 
-    # dataframe = pd.DataFrame(data)
-    # return dataframe[dataframe['name'].str.contains(key)]
-
-
-def search_json(data,key):
-    items = json.loads(data)
-
-    # Input the item name that you want to search
-    item = input("Enter an item name:\n")
-
-    # Define a function to search the item
-    for keyval in items:
-        if key.lower() == keyval['name'].lower():
-            return keyval
-
+def search_upper(data, key):
+    items = []
+    for item in data:
+        if item.get("name").upper().startswith(key.upper()):
+            items.append(item)
+    if not items:
+        return "Not found"
+    else:
+        return items
 
 def menu():
     flag = False
@@ -148,14 +107,16 @@ def menu():
 
         if cmd == "1":
             try:
+                cryptocurrency.clear()
                 parse()
                 flag = True
             except Exception:
+                cryptocurrency.clear()
                 print("Please try again")
                 flag = False
         elif cmd == "2" and flag == True:
             key = input("Enter (name): ")
-            print(search_list(cryptocurrency, key))
+            print(search_upper(cryptocurrency,key))
         elif cmd == "3" and flag == True:
             create_json(cryptocurrency)
         elif cmd == "4" and flag == True:
@@ -167,4 +128,4 @@ def menu():
             print("You entered an invalid value")
 
 
-# menu()
+menu()

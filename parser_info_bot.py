@@ -32,10 +32,10 @@ def handle_text(message):
             main.parse()
         except Exception:
             bot.send_message(message.chat.id,'Please try again')
-    if message.text.strip() == 'Поиск по названию':
+    if message.text == 'Поиск по названию':
         bot.send_message(message.chat.id, "Введите название криптовалюты")
         sleep(10)
-        key=message.text.strip()
+        key=message.text
         bot.send_message(message.chat.id,str(main.search_list(main.cryptocurrency,key)))
     if message.text.strip() == 'Получить JSON':
         main.create_json(main.cryptocurrency)
